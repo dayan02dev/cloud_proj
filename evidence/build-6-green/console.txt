@@ -14,8 +14,8 @@ Selected Git installation does not exist. Using Default
 The recommended git tool is: NONE
 No credentials specified
 Fetching changes from the remote Git repository
-Checking out Revision 961c1177e18b11cbc107b671c4051ae8e729e286 (refs/remotes/origin/main)
-Commit message: "Personalize my help introduction"
+Checking out Revision cc7ca16ebc324b3ca241dad4d8d16b267c1efadb (refs/remotes/origin/main)
+Commit message: "Restore cancellation fix: free the seat when a booking is cancelled"
  > git rev-parse --resolve-git-dir /Users/apple/Desktop/cloud_proj/jenkins-lab/runtime/agent-work/workspace/festpass-ci/.git # timeout=10
  > git config remote.origin.url git://127.0.0.1:9418/festpass-java # timeout=10
 Fetching upstream changes from git://127.0.0.1:9418/festpass-java
@@ -24,8 +24,8 @@ Fetching upstream changes from git://127.0.0.1:9418/festpass-java
  > git fetch --tags --force --progress -- git://127.0.0.1:9418/festpass-java +refs/heads/*:refs/remotes/origin/* # timeout=10
  > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
  > git config core.sparsecheckout # timeout=10
- > git checkout -f 961c1177e18b11cbc107b671c4051ae8e729e286 # timeout=10
- > git rev-list --no-walk 92c8a84fc0ab8e43760fae8148d2f15856a90574 # timeout=10
+ > git checkout -f cc7ca16ebc324b3ca241dad4d8d16b267c1efadb # timeout=10
+ > git rev-list --no-walk 50c55acfa42b242a5bf88f0f7ae35ac81918794e # timeout=10
 [Pipeline] dir
 Running in /Users/apple/Desktop/cloud_proj/jenkins-lab/runtime/agent-work/workspace/festpass-ci/build
 [Pipeline] {
@@ -37,7 +37,7 @@ Running in /Users/apple/Desktop/cloud_proj/jenkins-lab/runtime/agent-work/worksp
 [Pipeline] isUnix
 [Pipeline] sh
 + git log -1 --oneline
-961c117 Personalize my help introduction
+cc7ca16 Restore cancellation fix: free the seat when a booking is cancelled
 + java -version
 openjdk version "21.0.13" 2026-10-20 LTS
 OpenJDK Runtime Environment Temurin-21.0.13+9 (build 21.0.13+9-LTS)
@@ -153,7 +153,7 @@ Recording fingerprints
 [Pipeline] isUnix
 [Pipeline] sh
 + java ci/BuildEvidence.java SUCCESS
-Recorded submission-evidence.csv for dayan02dev, build 2, result SUCCESS.
+Recorded submission-evidence.csv for dayan02dev, build 6, result SUCCESS.
 [Pipeline] }
 [Pipeline] // withEnv
 [Pipeline] }

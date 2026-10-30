@@ -17,37 +17,45 @@
 | Repository | `git://127.0.0.1:9418/festpass-java` (local read-only git daemon) |
 | Credentials / branch / script path | none / `*/main` / `Jenkinsfile` |
 | Agent | `student-laptop` (inbound WebSocket agent; built-in node has 0 executors) |
-| Trigger | committed in the Jenkinsfile: `triggers { pollSCM('* * * * *') }` (no UI trigger) |
+| Trigger | committed in the Jenkinsfile: `triggers { pollSCM('* * * * *') }` (no UI trigger, no "Build periodically") |
 
-## Builds
+## Graded builds: automatic red, then automatic green
 
-| Build | Cause | Commit | Result | Tests |
-|---|---|---|---|---|
-| #1 | Started by user admin (bootstrap run, loads the trigger) | `92c8a84` Configure my Jenkins assignment | SUCCESS | 28, 0 failures |
-| #2 | **Started by an SCM change** (no Build Now) | `961c117` Personalize my help introduction | SUCCESS | 28, 0 failures |
+| Build | Cause | Commit | Result | Tests | JAR |
+|---|---|---|---|---|---|
+| **#5 (red)** | Started by an SCM change | `50c55ac` Revert cancellation fix to reproduce the seeded failure in Jenkins | **FAILURE** | 28, **3 failures** | not published (`NOT_PUBLISHED`) |
+| **#6 (green)** | Started by an SCM change | `cc7ca16` Restore cancellation fix: free the seat when a booking is cancelled | **SUCCESS** | **28, 0 failures** | `festpass.jar` |
 
-Both runs went through every stage: Checkout → Submission setup → Test → Build JAR → Smoke test JAR → Save artifact.
-In each run, the commit Jenkins printed at Checkout matches `git log -1 --oneline` for that commit.
+Neither build was started with Build Now. In each run, the commit Jenkins printed at Checkout matches `git log -1 --oneline` for that commit.
 
-## Red run (before the fix)
+**Red run #5, stages:** Checkout ✓ → Submission setup ✓ → Test ✗ → then
+`Stage "Build JAR" skipped due to earlier failure(s)`,
+`Stage "Smoke test JAR" skipped due to earlier failure(s)`,
+`Stage "Save artifact" skipped due to earlier failure(s)`.
+Only `submission-evidence.csv` was archived. The JAR URL for #5 returns 404.
 
-The fix (`33dedb8`) was committed before Jenkins was set up, so **no Jenkins red build
-exists**. The original failure was recorded by running `java ci/Build.java test` on the
-pre-fix commit `7a77072` (see `before-fix-local/test-output.txt`):
+**Green run #6, stages:** Checkout → Submission setup → Test (28/0) → Build JAR → Smoke test JAR (seven real-JAR commands pass) → Save artifact.
 
-```
-FAIL cancellationFreesSeat: SOLD OUT. Even the developer needs a ticket.
-FAIL cancellationsSurviveReload: Cancellation was lost
-FAIL cliWorkflowPersistsAcrossCommands: List does not reflect persisted cancellation
-28 tests, 3 failures.
-```
+### Why the history has a revert
 
-On a failed Test stage, the Jenkinsfile skips Build JAR, Smoke test JAR and Save artifact, so no JAR is published.
-The `post { always }` block still archives `submission-evidence.csv`.
+I fixed the bug (`33dedb8`) before Jenkins was set up, so the first builds
+(#1 manual bootstrap, then #2–#4 automatic) were already green. To record the required automatic
+red run, `50c55ac` reverts that fix. This restores the original starter `BookingService.java`
+byte for byte; no new defect is introduced. `cc7ca16` then re-applies the fix. Build #4 was
+triggered by a local commit (`8236e74`) that I amended by mistake and dropped before pushing;
+its file contents were identical to `06ff85a`.
 
 ## Diagnosis and fix
 
-**Failing assertion:** in `cancellationFreesSeat`, a 1-seat event is booked by S1, S1 cancels, then S2 books.
+**Failing assertions (build #5 test report):**
+
+```
+cancellationFreesSeat              IllegalArgumentException: SOLD OUT. Even the developer needs a ticket.
+cancellationsSurviveReload         AssertionError: Cancellation was lost
+cliWorkflowPersistsAcrossCommands  AssertionError: List does not reflect persisted cancellation
+```
+
+In `cancellationFreesSeat`, a 1-seat event is booked by S1, S1 cancels, then S2 books.
 Expected: S2 is accepted and the roster is `[S2]`. Actual: `SOLD OUT`.
 
 **Violated rule:** cancelling a booking must free the seat. `BookingService.cancel()` checked that
@@ -60,12 +68,13 @@ the booking existed but never removed the student, so a cancelled seat stayed ta
 event.students.remove(studentId);
 ```
 
-The tests were not changed: the `FestPassTest.java` SHA-256 (`d203243b…a98a34`) is the same as in the
-original starter. The only Jenkinsfile change is the 3-line `triggers` block.
+Before committing, `java ci/Build.java verify` gave 28 tests, 0 failures, and `java ci/SmokeTest.java` passed all seven commands.
+The tests were not changed: the `FestPassTest.java` SHA-256 (`d203243b…a98a34`) is the same as in the original
+starter and is identical in both CSVs. The only Jenkinsfile change is the 3-line `triggers` block.
 
 ## Final JAR
 
-Downloaded from build #2 (`build-2/festpass.jar`, SHA-256 `079a16e9…01f5722`, which matches the CSV):
+Downloaded from build #6 (`build-6-green/festpass.jar`, SHA-256 `36b1cd2f…ef87a8af1`, which matches the green CSV):
 
 ```
 $ java -jar festpass.jar help
@@ -76,6 +85,6 @@ Usage: java -jar build/festpass.jar [--data FILE] COMMAND
 
 ## Files
 
-- `build-1/`: evidence CSV and console log for build #1
-- `build-2/`: evidence CSV, `festpass.jar`, `build-info.txt`, `smoke-test.txt`, console log, `jar-help-output.txt`
-- `before-fix-local/test-output.txt`: test run on the original buggy code
+- `build-5-red/`: red evidence CSV and console log
+- `build-6-green/`: green evidence CSV, `festpass.jar`, `build-info.txt`, `smoke-test.txt`, console log, `jar-help-output.txt`
+- `before-fix-local/test-output.txt`: local test run on the original starter code
