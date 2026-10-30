@@ -1,0 +1,34 @@
+Compiled FestPass with Java 21.
+PASS emptyEventAcceptsBooking
+PASS lastAvailableSeatIsAccepted
+PASS fullEventRejectsBooking
+PASS overCapacityRejectsBooking
+PASS zeroCapacityRejectsBooking
+PASS oneSeatEventAcceptsBooking
+PASS negativeBookedIsRejected
+PASS negativeCapacityIsRejected
+PASS eventsTrackIndependentCapacity
+PASS duplicateEventDoesNotReplaceBookings
+PASS invalidEventsLeaveStateUnchanged
+PASS duplicateBookingDoesNotConsumeSeat
+PASS soldOutBookingLeavesRosterUnchanged
+FAIL cancellationFreesSeat: SOLD OUT. Even the developer needs a ticket.
+java.lang.IllegalArgumentException: SOLD OUT. Even the developer needs a ticket.
+PASS missingBookingCannotBeCancelled
+PASS unknownEventsAreRejected
+PASS invalidStudentIdsAreRejected
+PASS snapshotsCannotMutateService
+PASS bookingsSurviveSaveAndReload
+FAIL cancellationsSurviveReload: Cancellation was lost
+java.lang.AssertionError: Cancellation was lost
+PASS corruptDataIsRejected
+PASS missingDataStartsEmpty
+FAIL cliWorkflowPersistsAcrossCommands: List does not reflect persisted cancellation
+java.lang.AssertionError: List does not reflect persisted cancellation
+PASS cliReportsInvalidRequests
+PASS cliDoesNotOverwriteCorruptFile
+PASS cliReportsReadAndSaveFailures
+PASS cliRejectsLockedStore
+PASS helpDoesNotNeedProjectData
+28 tests, 3 failures. Report: build/test-results/TEST-FestPass.xml
+Exception in thread "main" java.lang.IllegalStateException: Tests failed (exit 1). JAR creation is blocked.
